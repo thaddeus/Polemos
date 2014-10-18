@@ -19,7 +19,7 @@ func (c *connection) reader() {
         if err != nil {
             break
         }
-        h.broadcast <- message
+        loginServer.broadcast <- message
     }
     c.ws.Close()
 }
@@ -42,8 +42,8 @@ func wsHandler(w http.ResponseWriter, r *http.Request) {
         return
     }
     c := &connection{send: make(chan []byte, 256), ws: ws}
-    h.register <- c
-    defer func() { h.unregister <- c }()
+    loginServer.register <- c
+    defer func() { loginServer.unregister <- c }()
     go c.writer()
     c.reader()
 }

@@ -1,6 +1,6 @@
 package main
 
-type lobby struct {
+type server struct {
     // Registered connections.
     connections map[*connection]bool
 
@@ -14,29 +14,29 @@ type lobby struct {
     unregister chan *connection
 }
 
-var lobby = lobby{
+var loginServer = server{
     broadcast:   make(chan []byte),
     register:    make(chan *connection),
     unregister:  make(chan *connection),
     connections: make(map[*connection]bool),
 }
 
-func (l *lobby) run() {
+func (server *server) run() {
     for {
         select {
-        case c := <-l.register:
-            l.connections[c] = true
-        case c := <-l.unregister:
-            if _, ok := l.connections[c]; ok {
-                delete(l.connections, c)
+        case c := <-server.register:
+            server.connections[c] = true
+        case c := <-server.unregister:
+            if _, ok := server.connections[c]; ok {
+                delete(server.connections, c)
                 close(c.send)
             }
-        case m := <-l.broadcast:
-            for c := range l.connections {
+        case m := <-server.broadcast:
+            for c := range server.connections {
                 select {
                 case c.send <- m:
                 default:
-                    delete(l.connections, c)
+                    delete(server.connections, c)
                     close(c.send)
                 }
             }
